@@ -1,11 +1,11 @@
-# SDR: Self-Supervised Document-to-Document Similarity Ranking viaContextualized Language Models and Hierarchical Inference
+# Self-Supervised Document Similarity Ranking (SDR) via Contextualized Language Models and Hierarchical Inference
 
 This repo is the implementation for [**SDR**](www.arxiv_link.com). 
 
 
 &nbsp;
-<p float="left">
-    <img src="data/images/training_intuition2.png"/>
+<p align="center">
+    <img src="data/images/training_intuition2.png" width="300"/>
 </p>
 
 
@@ -24,11 +24,12 @@ Lower CUDA and PyTorch versions should work as well.
 - [Hierarchical Inference](#inference)
 - [Cite](#cite)
 
+License, Security, support and code of conduct specifications are under the `Instructions` directory.
 &nbsp;
 ## Installation
 Run
 ```
-bash installation.sh 
+bash instructions/installation.sh 
 ```
 &nbsp;
 
@@ -70,8 +71,8 @@ Run `tesnroboard --logdir=<path>` to see the the logs.
 
 # Inference
 The hierarchical inference described in the paper is implemented as a stand-alone service and can be used with any backbone algorithm (`models/reco/hierarchical_reco.py`).
-<p float="left">
-    <img src="data/images/inference.png"/>
+<p align="center">
+    <img src="data/images/inference.png" width="400"/>
 </p>
 
 &nbsp;
@@ -82,8 +83,8 @@ python train_doc_sim.py --dataset_name <name> --resume_from_checkpoint <checkpoi
 ``` 
 
 # Results
-<p float="left">
-    <img src="data/images/Results.png"/>
+<p align="center">
+    <img src="data/images/Results.png" width="400"/>
 </p>
 
 # Citing & Authors
