@@ -1,33 +1,97 @@
-# Project
+# SDR: Self-Supervised Document-to-Document Similarity Ranking viaContextualized Language Models and Hierarchical Inference
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+This repo is the implementation for [**SDR**](www.arxiv_link.com). 
 
-As the maintainer of this project, please make a few updates:
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+&nbsp;
+<p float="left">
+    <img src="data/images/training_intuition2.png"/>
+</p>
 
-## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+## Tested environment
+- Python 3.7
+- PyTorch 1.7
+- CUDA 11.0
+  
+Lower CUDA and PyTorch versions should work as well.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+&nbsp;
+## Contents
+- [Installation](#installation)
+- [Datasets](#datasets)
+- [Train with our datasets](#training)
+- [Hierarchical Inference](#inference)
+- [Cite](#cite)
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+&nbsp;
+## Installation
+Run
+```
+bash installation.sh 
+```
+&nbsp;
 
-## Trademarks
+## Datasets
+The published datasets are:
+* Video games
+  * 21,935 articles
+  * Expert annotated test set. 90 articles with 12 ground-truth recommendations.
+  * Examples:
+    * Grand Theft Auto - Mafia
+    * Burnout Paradise - Forza Horizon 3
+* Wines
+  * 1635 articles
+  *  Crafted by a human sommelier, 92 articles with ~10 ground-truth recommendations.
+  *  Examples:
+     *  Pinot Meunier - Chardonnay
+     *  Dom Pérignon - Moët & Chandon
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+For more details and direct download see [Wines](https://zenodo.org/record/4812960#.YK8zqagzaUk) and [Video Games](https://zenodo.org/record/4812962#.YK8zqqgzaUk).
+
+&nbsp;
+
+# Training
+**The training process downloads the datasets automatically.**
+
+``` 
+python train_doc_sim.py --dataset_name video_games
+```
+The code is based on [PyTorch-Lightning](https://pytorch-lightning.readthedocs.io/en/latest/), all PL [hyperparameters](https://pytorch-lightning.readthedocs.io/en/latest/common/trainer.html) are supported. (`limit_train/val/test_batches, check_val_every_n_epoch` etc.)
+
+## Tensorboard support
+All metrics are being logged automatically and stored in
+```
+SDR/output/document_similarity/SDR/arch_SDR/dataset_name_<dataset>/<time_of_run>
+```
+Run `tesnroboard --logdir=<path>` to see the the logs.
+
+&nbsp;
+
+# Inference
+The hierarchical inference described in the paper is implemented as a stand-alone service and can be used with any backbone algorithm (`models/reco/hierarchical_reco.py`).
+<p float="left">
+    <img src="data/images/inference.png"/>
+</p>
+
+&nbsp;
+
+
+```
+python train_doc_sim.py --dataset_name <name> --resume_from_checkpoint <checkpoint> --test_only
+``` 
+
+# Results
+<p float="left">
+    <img src="data/images/Results.png"/>
+</p>
+
+# Citing & Authors
+If you find this repository or the annotated datasets helpful, feel free to cite our publication -
+
+ SDR: Self-Supervised Document-to-Document Similarity Ranking viaContextualized Language Models and Hierarchical Inference
+ ```
+  Link will be uploaded soon!
+ ```
+
+Contact person: [Dvir Ginzburg](dvirginz@gmail.com)

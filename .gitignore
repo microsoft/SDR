@@ -1,0 +1,12 @@
+*.pyc
+**/.vscode/*
+**/.history/*
+
+**/datasets/*
+!**/datasets/wines
+**/datasets/wines/*
+!**/datasets/wines/gt
+!**/datasets/video_games
+**/datasets/video_games/*
+!**/datasets/video_games/gt
+**/output/*
