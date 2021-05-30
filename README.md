@@ -5,7 +5,7 @@ This repo is the implementation for [**SDR**](www.arxiv_link.com).
 
 &nbsp;
 <p align="center">
-    <img src="data/images/training_intuition2.png" width="300"/>
+    <img src="data/images/training_intuition2.png" width="600"/>
 </p>
 
 
@@ -72,7 +72,7 @@ Run `tesnroboard --logdir=<path>` to see the the logs.
 # Inference
 The hierarchical inference described in the paper is implemented as a stand-alone service and can be used with any backbone algorithm (`models/reco/hierarchical_reco.py`).
 <p align="center">
-    <img src="data/images/inference.png" width="400"/>
+    <img src="data/images/inference.png" width="600"/>
 </p>
 
 &nbsp;
@@ -84,7 +84,7 @@ python train_doc_sim.py --dataset_name <name> --resume_from_checkpoint <checkpoi
 
 # Results
 <p align="center">
-    <img src="data/images/Results.png" width="400"/>
+    <img src="data/images/Results.png" width="600"/>
 </p>
 
 # Citing & Authors
