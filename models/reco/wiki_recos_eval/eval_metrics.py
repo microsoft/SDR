@@ -47,6 +47,9 @@ def calculate_mpr(
             continue
         for gt_title in article_article_gt[wiki_title].keys():
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
+            if lookup not in names_to_id:
+                print(f"{lookup} not in names_to_id")
+                continue
             recommended_idx_ls = np.where(recommandations == names_to_id[lookup])[0]
             if recommended_idx_ls.shape[0] == 0:
                 continue

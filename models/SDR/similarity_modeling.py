@@ -79,18 +79,6 @@ class SimilarityModeling(BertPreTrainedModel):
         run_similarity=False,
         run_mlm=True,
     ):
-        attention_mask = (input_ids != self.hparams.tokenizer_pad_id).int()
-        if self.hparams.mode != "train":
-            outputs = self.roberta(
-                input_ids,
-                attention_mask=attention_mask,
-                token_type_ids=token_type_ids,
-                position_ids=position_ids,
-                inputs_embeds=inputs_embeds,
-                return_dict=True,
-                output_hidden_states=True,
-            )
-
         if run_mlm:
             outputs = list(
                 self.roberta(

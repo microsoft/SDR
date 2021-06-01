@@ -98,7 +98,7 @@ def main():
 def load_params_from_checkpoint(hparams, parser):
     path = hparams.resume_from_checkpoint
     hparams_model = Namespace(**torch.load(path,map_location=torch.device('cpu'))['hyper_parameters'])
-    hparams_model.max_epochs = hparams_model.current_epoch + 30
+    hparams_model.max_epochs = hparams_model.max_epochs + 30
     for k,v in get_non_default(hparams,parser).items():
         setattr(hparams_model,k,v)
     hparams_model.gpus = hparams.gpus

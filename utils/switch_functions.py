@@ -38,15 +38,15 @@ def choose_optimizer(params, network_parameters):
         Exception: If not matched optimizer
     """
     if params.optimizer == "adamW":
-        optimizer = transformers.AdamW(network_parameters, lr=params.learning_rate,)
+        optimizer = transformers.AdamW(network_parameters, lr=params.lr,)
     elif params.optimizer == "sgd":
-        optimizer = torch.optim.SGD(network_parameters, lr=params.learning_rate, weight_decay=params.weight_decay, momentum=0.9,)
+        optimizer = torch.optim.SGD(network_parameters, lr=params.lr, weight_decay=params.weight_decay, momentum=0.9,)
     else:
         raise Exception("No valid optimizer provided")
     return optimizer
 
 
-def choose_scheduler(scheduler_name, optimizer, warmup_steps, learning_rate, params):
+def choose_scheduler(scheduler_name, optimizer, warmup_steps, params):
 
     if scheduler_name == "linear_with_warmup":
         return get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=params.max_epochs)

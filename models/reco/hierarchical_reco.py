@@ -1,3 +1,5 @@
+import json
+from data.data_utils import get_gt_seeds_titles
 from models.reco.wiki_recos_eval.eval_metrics import evaluate_wiki_recos
 from utils.torch_utils import mean_non_pad_value, to_numpy
 from models.reco.recos_utils import index_amp, sim_matrix
@@ -8,10 +10,9 @@ import pickle
 from sklearn.preprocessing import normalize
 
 
-def vectorize_reco_hierarchical(all_features, gt_path, dataset_path, output_path=""):
-    dataset_titles, _ = list(zip(*pickle.load(open(dataset_path, "rb"))))
+def vectorize_reco_hierarchical(all_features, titles,gt_path, output_path=""):
     gt = pickle.load(open(gt_path, "rb"))
-    to_reco_indices = [index_amp(dataset_titles, title) for title in gt.keys()]
+    to_reco_indices = [index_amp(titles, title) for title in gt.keys()]
     to_reco_indices = list(filter(lambda title: title != None, to_reco_indices))
     sections_per_article = np.array([len(article) for article in all_features])
     sections_per_article_cumsum = np.array([0,] + [len(article) for article in all_features]).cumsum()
@@ -28,7 +29,7 @@ def vectorize_reco_hierarchical(all_features, gt_path, dataset_path, output_path
     recos = []
     for i in tqdm(to_reco_indices):
         if i > len(all_features):
-            print(f"GT title {dataset_titles[i]} was not evaluated")
+            print(f"GT title {titles[i]} was not evaluated")
             continue
 
         to_reco_flattened = features_per_section_padded[
@@ -54,7 +55,8 @@ def vectorize_reco_hierarchical(all_features, gt_path, dataset_path, output_path
 
         recos.append((i, to_numpy(par_score.argsort(descending=True)[1:])))
 
-    examples = [[None, title] for title in dataset_titles]  # reco_utils compatibale
+    examples = [[None, title] for title in titles]  # reco_utils compatibale
     _, mpr, _, mrr, _, hit_rate = evaluate_wiki_recos(recos, output_path, gt_path, examples=examples)
-    return recos, {"mrr": mrr, "mpr": mpr, "hit_rates": hit_rate}
+    metrics = {"mrr": mrr, "mpr": mpr, "hit_rates": hit_rate}
+    return recos, metrics
 

@@ -62,10 +62,13 @@ class SDR(TransformersBase):
     def test_step(self, batch, batch_idx):
         section_out = []
         for section in batch[0]:  # batch=1 for test
-            sentences = []
-            sentences_embed_per_token = self.model(
-                section[0][: self.hparams.test_batch_size], masked_lm_labels=None, run_similarity=False
-            )[5]
+            sentences=[]
+            sentences_embed_per_token = [
+                self.model(
+                    sentence.unsqueeze(0), masked_lm_labels=None, run_similarity=False
+                )[5].squeeze(0)
+                for sentence in section[0][:8]
+            ]
             for idx, sentence in enumerate(sentences_embed_per_token):
                 sentences.append(sentence[: section[2][idx]].mean(0))  # We take the non-padded tokens and mean them
             section_out.append(torch.stack(sentences))
@@ -99,7 +102,7 @@ class SDR(TransformersBase):
         elif(self.hparams.resume_from_checkpoint is not None):
             self.trainer.checkpoint_callback.last_model_path = self.hparams.resume_from_checkpoint
         if recos_path is None:
-            save_outputs_path = f"{self.trainer.checkpoint_callback.last_model_path}_NumSamples_{len(outputs)}"
+            save_outputs_path = f"{self.trainer.checkpoint_callback.last_model_path}_FEATURES_NumSamples_{len(outputs)}"
 
             if isinstance(outputs[0][0][0], torch.Tensor):
                 outputs = [([to_numpy(section) for section in sample[0]], sample[1]) for sample in outputs]
@@ -119,8 +122,8 @@ class SDR(TransformersBase):
 
             recos, metrics = vectorize_reco_hierarchical(
                 all_features=section_sentences_features,
+                titles=titles,
                 gt_path=gt_path,
-                dataset_path=self.hparams.test_data_file,
                 output_path=self.trainer.checkpoint_callback.last_model_path,
             )
             metrics = {

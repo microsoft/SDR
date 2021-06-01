@@ -88,7 +88,7 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
         "--max_epochs", default={"document_similarity": 50}[task_name], type=int, help="Number of epochs to train",
     )
     parser.add_argument(
-        "--learning_rate", "-lr", default={"document_similarity": 2e-5}[task_name], type=float, help="Learning rate",
+        "-lr", default={"document_similarity": 2e-5}[task_name], type=float, help="Learning rate",
     )
 
     parser.add_argument("--optimizer", default="adamW", help="Optimizer to use")

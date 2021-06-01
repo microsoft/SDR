@@ -80,7 +80,7 @@ class TransformersBase(DocEmbeddingTemplate):
 
         parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
 
-        parser.set_defaults(learning_rate=2e-5, weight_decay=0)
+        parser.set_defaults(lr=2e-5, weight_decay=0)
 
         arch, mlm = parser.parse_known_args()[0].arch, parser.parse_known_args()[0].mlm
         if arch in ["bert", "roberta", "distilbert", "camembert", "recoberta", "recoberta_cosine"] and not mlm:

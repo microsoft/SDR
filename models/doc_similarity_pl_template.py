@@ -147,7 +147,7 @@ class DocEmbeddingTemplate(LightningModule):
 
         optimizer = switch_functions.choose_optimizer(self.hparams, optimizer_grouped_parameters)
         scheduler = switch_functions.choose_scheduler(
-            self.hparams.scheduler, optimizer, warmup_steps=0, learning_rate=self.hparams.learning_rate, params=self.hparams
+            self.hparams.scheduler, optimizer, warmup_steps=0, params=self.hparams
         )
 
         return [optimizer], [scheduler]
