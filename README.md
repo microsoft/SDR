@@ -56,7 +56,7 @@ For more details and direct download see [Wines](https://zenodo.org/record/48129
 **The training process downloads the datasets automatically.**
 
 ``` 
-python train_doc_sim.py --dataset_name video_games
+python sdr_main.py --dataset_name video_games
 ```
 The code is based on [PyTorch-Lightning](https://pytorch-lightning.readthedocs.io/en/latest/), all PL [hyperparameters](https://pytorch-lightning.readthedocs.io/en/latest/common/trainer.html) are supported. (`limit_train/val/test_batches, check_val_every_n_epoch` etc.)
 
@@ -79,7 +79,7 @@ The hierarchical inference described in the paper is implemented as a stand-alon
 
 
 ```
-python train_doc_sim.py --dataset_name <name> --resume_from_checkpoint <checkpoint> --test_only
+python sdr_main.py --dataset_name <name> --resume_from_checkpoint <checkpoint> --test_only
 ``` 
 
 # Results
