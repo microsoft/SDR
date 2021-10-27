@@ -51,7 +51,7 @@ def main_train(model_class_pointer, hparams,parser):
             save_last=True,
             mode="min" if "acc" not in hparams.metric_to_track else "max",
             monitor=hparams.metric_to_track,
-            filepath=os.path.join(model.hparams.hparams_dir, "{epoch}"),
+            filename=os.path.join(model.hparams.hparams_dir, "{epoch}"),
             verbose=True,
         ),
         logger=logger,
