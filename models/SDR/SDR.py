@@ -115,6 +115,9 @@ class SDR(TransformersBase):
             section_sentences_features = [out[0] for out in outputs]
             popular_titles, idxs, gt_path = get_gt_seeds_titles(titles, self.hparams.dataset_name)
 
+               
+            #print(np.array(outputs).shape, "\n", outputs[0])
+            
             self.hparams.test_sample_size = (
                 self.hparams.test_sample_size if self.hparams.test_sample_size > 0 else len(popular_titles)
             )
@@ -195,7 +198,7 @@ class SDR(TransformersBase):
         parser.add_argument("--metric_loss_func", type=str, default="ContrastiveLoss")  # TripletMarginLoss #CosineLoss
         parser.add_argument("--sim_loss_lambda", type=float, default=0.1)
         parser.add_argument("--limit_tokens", type=int, default=64)
-        parser.add_argument("--limit_val_indices_batches", type=int, default=500)
+        #parser.add_argument("--limit_val_indices_batches", type=int, default=500)
         parser.add_argument("--metric_for_similarity", type=str, choices=["cosine", "norm_euc"], default="cosine")
 
         parser.set_defaults(
@@ -229,8 +232,8 @@ class SDR(TransformersBase):
             block_size=block_size,
             mode="val",
         )
-        self.val_dataset.indices_map = self.val_dataset.indices_map[: self.hparams.limit_val_indices_batches]
-        self.val_dataset.labels = self.val_dataset.labels[: self.hparams.limit_val_indices_batches]
+        #self.val_dataset.indices_map = self.val_dataset.indices_map[: self.hparams.limit_val_indices_batches]
+        #self.val_dataset.labels = self.val_dataset.labels[: self.hparams.limit_val_indices_batches]
 
         self.test_dataset = WikipediaTextDatasetParagraphsSentencesTest(
             tokenizer=self.tokenizer,
@@ -239,4 +242,8 @@ class SDR(TransformersBase):
             block_size=block_size,
             mode="test",
         )
+        
+        #self.test_dataset.indices_map = self.test_dataset.indices_map[: self.hparams.limit_test_indices_batches]
+        #self.test_dataset.labels = self.test_dataset.labels[: self.hparams.limit_test_indices_batches]
+        #self.test_dataset.examples = self.test_dataset.examples[: self.hparams.limit_test_indices_batches]
 

@@ -45,15 +45,15 @@ def main_train(model_class_pointer, hparams,parser):
     trainer = pytorch_lightning.Trainer(
         num_sanity_val_steps=2,
         gradient_clip_val=hparams.max_grad_norm,
-        callbacks=[RunValidationOnStart()],
-        checkpoint_callback=ModelCheckpoint(
+        callbacks=[ModelCheckpoint(
             save_top_k=3,
             save_last=True,
             mode="min" if "acc" not in hparams.metric_to_track else "max",
             monitor=hparams.metric_to_track,
-            filepath=os.path.join(model.hparams.hparams_dir, "{epoch}"),
+            filename=os.path.join(model.hparams.hparams_dir, "{epoch}"),
             verbose=True,
-        ),
+        )],
+        checkpoint_callback=True,
         logger=logger,
         max_epochs=hparams.max_epochs,
         gpus=hparams.gpus,
@@ -66,14 +66,21 @@ def main_train(model_class_pointer, hparams,parser):
         accumulate_grad_batches=hparams.accumulate_grad_batches,
         reload_dataloaders_every_epoch=True,
         # load
-        resume_from_checkpoint=hparams.resume_from_checkpoint,
+        #resume_from_checkpoint=hparams.resume_from_checkpoint,
     )
     if(not hparams.test_only):
+      if(hparams.resume_from_checkpoint is not None):
+        trainer.fit(model, ckpt_path=hparams.resume_from_checkpoint)
+      else:
         trainer.fit(model)
+      trainer.test(model)
     else:
-        if(hparams.resume_from_checkpoint is not None):
-            model = model.load_from_checkpoint(hparams.resume_from_checkpoint,hparams=hparams, map_location=torch.device(f"cpu"))
-    trainer.test(model)
+      if(hparams.resume_from_checkpoint is not None):
+        trainer.test(model, ckpt_path=hparams.resume_from_checkpoint)
+      else:
+        trainer.test(model)
+        #model = model.load_from_checkpoint(hparams.resume_from_checkpoint,hparams=hparams, map_location=torch.device(f"cpu"))
+    
 
 
 if __name__ == "__main__":

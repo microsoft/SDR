@@ -17,7 +17,7 @@ def vectorize_reco_hierarchical(all_features, titles,gt_path, output_path=""):
     sections_per_article = np.array([len(article) for article in all_features])
     sections_per_article_cumsum = np.array([0,] + [len(article) for article in all_features]).cumsum()
     features_per_section = [sec for article in all_features for sec in article]
-    features_per_section_torch = [torch.from_numpy(feat) for feat in features_per_section]
+    features_per_section_torch = [torch.from_numpy(feat).unsqueeze(0) for feat in features_per_section]
     features_per_section_padded = torch.nn.utils.rnn.pad_sequence(
         features_per_section_torch, batch_first=True, padding_value=torch.tensor(float("nan"))
     ).cuda()
