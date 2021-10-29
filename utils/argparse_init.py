@@ -127,6 +127,10 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
     parser.add_argument(
         "--limit_train_batches", default=10000, type=int,
     )
+    
+    parser.add_argument(
+        "--limit_test_indices_batches", default=10000, type=int,
+    )
 
     parser.add_argument(
         "--train_log_every_n_steps", default=50, type=int,
