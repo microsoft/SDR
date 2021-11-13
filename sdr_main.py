@@ -1,4 +1,4 @@
-"""Top level file, parse flags and call trining loop."""
+"""Top level file, parse flags and call training loop."""
 import os
 from utils.pytorch_lightning_utils.pytorch_lightning_utils import load_params_from_checkpoint
 import torch
