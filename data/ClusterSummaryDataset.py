@@ -63,7 +63,7 @@ class ClusterSummaryDatasetSentences(Dataset):
                 elif (mode=='test') and  ((dataset_name=='video_games_cluster')or self.hparams.dataset_name =='video_games_cluster_multianchor') and idx_article<len(queryGt):
                     title, sections = article, [article]
                 #ArgName
-                elif True:
+                elif self.hparams.extractMultipleSummaryFromFile:
                     sectionLidts = set(['Gameplay','Plot','Reception','Release'])
                     title, sections = article[0], [(article[it] , article[it+1]) for it in range(1,len(article),2) if article[it] in sectionLidts]
                 else:
@@ -113,12 +113,17 @@ class ClusterSummaryDatasetSentences(Dataset):
         proccessed_path = f"{cached_features_file}_EXAMPLES"
         #debug - only when new dataset is added and need to parse it
         
-        if self.hparams.summaryFlag and self.hparams.dataset_name =='video_games_cluster_multianchor':
+        if self.hparams.parseSummaryFilesToSingleFile and self.hparams.dataset_name =='video_games_cluster_multianchor':
             sectionLidts = set(['Gameplay\n','Plot\n','Reception\n','Release\n'])
             cached_features_file+='multiAnchor'
             proccessed_path = f"{cached_features_file}_EXAMPLES"
+            rootFolder = '/'.join(raw_data_path.split('/')[:-1])
+            
+            if not os.path.exists(rootFolder):
+                os.makedirs(rootFolder)
             file2 = open(raw_data_path, "w",encoding='utf8')
 
+            
             openFile = '/raid/itzik/text_rank_output/latest_multi_anchor_stable_sent_to_jonathan/cohrent_order/'
             lISToFfILES = os.listdir(openFile)
             for it in lISToFfILES:
