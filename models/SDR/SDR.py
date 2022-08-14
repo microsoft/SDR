@@ -1,3 +1,4 @@
+from data.ClusterSummaryDataset import ClusterSummaryDatasetSentences,ClusterSummaryDatasetSentencesTest
 from data.datasets import (
     WikipediaTextDatasetParagraphsSentences,
     WikipediaTextDatasetParagraphsSentencesTest,
@@ -7,7 +8,7 @@ from models.SDR.SDR_utils import MPerClassSamplerDeter
 from data.data_utils import get_gt_seeds_titles, reco_sentence_collate, reco_sentence_test_collate
 from functools import partial
 import os
-from models.reco.hierarchical_reco import vectorize_reco_hierarchical
+from models.reco.hierarchical_reco import vectorize_reco_hierarchical,vectorize_reco_average_search
 from utils.torch_utils import to_numpy
 from models.transformers_base import TransformersBase
 from models.doc_similarity_pl_template import DocEmbeddingTemplate
@@ -59,7 +60,15 @@ class SDR(TransformersBase):
     def forward_val(self, batch):
         self.forward_train(batch)
 
+    def on_test_epoch_start(self) -> None:
+        if self.hparams.skipForwardPass:
+            self.test_epoch_end([])
+        self.test_logs = []
+        self.hparams.mode = "test"
+
     def test_step(self, batch, batch_idx):
+        if self.hparams.skipForwardPass:
+            return
         section_out = []
         for section in batch[0]:  # batch=1 for test
             sentences=[]
@@ -101,49 +110,71 @@ class SDR(TransformersBase):
             self.trainer.checkpoint_callback.last_model_path = f"{self.hparams.hparams_dir}/no_train"
         elif(self.hparams.resume_from_checkpoint is not None):
             self.trainer.checkpoint_callback.last_model_path = self.hparams.resume_from_checkpoint
+        
+        recos_path =  '/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/epoch=3.ckpt_FEATURES_NumSamples_21228EntireDoc1807'
+
+        
         if recos_path is None:
             save_outputs_path = f"{self.trainer.checkpoint_callback.last_model_path}_FEATURES_NumSamples_{len(outputs)}"
+
+            save_outputs_path+="SummaryAllTopics"
 
             if isinstance(outputs[0][0][0], torch.Tensor):
                 outputs = [([to_numpy(section) for section in sample[0]], sample[1]) for sample in outputs]
             torch.save(outputs, save_outputs_path)
-            print(f"\nSaved to {save_outputs_path}\n")
+        else:
+            save_outputs_path = recos_path
 
-            titles = popular_titles = [out[1][:-1] for out in outputs]
-            idxs, gt_path = list(range(len(titles))), ""
+        outputs = torch.load(save_outputs_path)
+        if recos_path=='/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/01_06_2022-14_57_08/epoch=3.ckpt_FEATURES_NumSamples_21226SummaryAllTopics':
+            index = -9
+        else:
+            index = -1
+        print(f"\nSaved to {save_outputs_path}\n")
 
-            section_sentences_features = [out[0] for out in outputs]
-            popular_titles, idxs, gt_path = get_gt_seeds_titles(titles, self.hparams.dataset_name)
+        titles = popular_titles = [out[1][:-index] for out in outputs]
 
-            self.hparams.test_sample_size = (
-                self.hparams.test_sample_size if self.hparams.test_sample_size > 0 else len(popular_titles)
-            )
-            idxs = idxs[: self.hparams.test_sample_size]
+        idxs, gt_path = list(range(len(titles))), ""
 
+        section_sentences_features = [out[0] for out in outputs]
+        popular_titles, idxs, gt_path = get_gt_seeds_titles(titles, self.hparams.dataset_name)
+        gt_path = self.hparams.gt_root_dir
+
+        self.hparams.test_sample_size = (
+            self.hparams.test_sample_size if self.hparams.test_sample_size > 0 else len(popular_titles)
+        )
+        idxs = idxs[: self.hparams.test_sample_size]
+        
+        if False:
             recos, metrics = vectorize_reco_hierarchical(
                 all_features=section_sentences_features,
                 titles=titles,
                 gt_path=gt_path,
                 output_path=self.trainer.checkpoint_callback.last_model_path,
             )
-            metrics = {
-                "mrr": float(metrics["mrr"]),
-                "mpr": float(metrics["mpr"]),
-                **{f"hit_rate_{rate[0]}": float(rate[1]) for rate in metrics["hit_rates"]},
-            }
-            print(json.dumps(metrics, indent=2))
-            for k, v in metrics.items():
-                self.logger.experiment.add_scalar(k, v, global_step=self.global_step)
-
-            recos_path = os.path.join(
-                os.path.dirname(self.trainer.checkpoint_callback.last_model_path),
-                f"{os.path.basename(self.trainer.checkpoint_callback.last_model_path)[:-5]}"
-                f"_numSamples_{self.hparams.test_sample_size}",
+        else:
+            recos, metrics = vectorize_reco_average_search(
+                    all_features=section_sentences_features,
+                    titles=titles,
+                    gt_path=gt_path,
+                    output_path=self.trainer.checkpoint_callback.last_model_path,
             )
-            torch.save(recos, recos_path)
-            print("Saving recos in {}".format(recos_path))
+        metrics = {
+            "mrr": float(metrics["mrr"]),
+            "mpr": float(metrics["mpr"]),
+            **{f"hit_rate_{rate[0]}": float(rate[1]) for rate in metrics["hit_rates"]},
+        }
+        print(json.dumps(metrics, indent=2))
+        for k, v in metrics.items():
+            self.logger.experiment.add_scalar(k, v, global_step=self.global_step)
 
-            setattr(self.hparams, "recos_path", recos_path)
+        recos_path = os.path.join(os.path.dirname(self.trainer.checkpoint_callback.last_model_path),
+        f"{os.path.basename(self.trainer.checkpoint_callback.last_model_path)[:-5]}"
+        f"_numSamples_{self.hparams.test_sample_size}")
+        torch.save(recos, recos_path)
+        print("Saving recos in {}".format(recos_path))
+
+        setattr(self.hparams, "recos_path", recos_path)
         return
 
     def dataloader(self, mode=None):
@@ -215,28 +246,54 @@ class SDR(TransformersBase):
             and self.hparams.block_size < self.tokenizer.max_len
             else self.tokenizer.max_len
         )
-        self.train_dataset = WikipediaTextDatasetParagraphsSentences(
-            tokenizer=self.tokenizer,
-            hparams=self.hparams,
-            dataset_name=self.hparams.dataset_name,
-            block_size=block_size,
-            mode="train",
-        )
-        self.val_dataset = WikipediaTextDatasetParagraphsSentences(
-            tokenizer=self.tokenizer,
-            hparams=self.hparams,
-            dataset_name=self.hparams.dataset_name,
-            block_size=block_size,
-            mode="val",
-        )
-        self.val_dataset.indices_map = self.val_dataset.indices_map[: self.hparams.limit_val_indices_batches]
-        self.val_dataset.labels = self.val_dataset.labels[: self.hparams.limit_val_indices_batches]
+        if self.hparams.dataset_name =='video_games_cluster' or self.hparams.dataset_name =='video_games_cluster_multianchor':
+            self.train_dataset = ClusterSummaryDatasetSentences(
+                tokenizer=self.tokenizer,
+                hparams=self.hparams,
+                dataset_name=self.hparams.dataset_name,
+                block_size=block_size,
+                mode="train",
+            )
+            self.val_dataset = ClusterSummaryDatasetSentences(
+                tokenizer=self.tokenizer,
+                hparams=self.hparams,
+                dataset_name=self.hparams.dataset_name,
+                block_size=block_size,
+                mode="val",
+            )
+            self.val_dataset.indices_map = self.val_dataset.indices_map[: self.hparams.limit_val_indices_batches]
+            self.val_dataset.labels = self.val_dataset.labels[: self.hparams.limit_val_indices_batches]
 
-        self.test_dataset = WikipediaTextDatasetParagraphsSentencesTest(
-            tokenizer=self.tokenizer,
-            hparams=self.hparams,
-            dataset_name=self.hparams.dataset_name,
-            block_size=block_size,
-            mode="test",
-        )
+            self.test_dataset = ClusterSummaryDatasetSentencesTest(
+                tokenizer=self.tokenizer,
+                hparams=self.hparams,
+                dataset_name=self.hparams.dataset_name,
+                block_size=block_size,
+                mode="test",
+            )
+        else:
+            self.train_dataset = WikipediaTextDatasetParagraphsSentences(
+                tokenizer=self.tokenizer,
+                hparams=self.hparams,
+                dataset_name=self.hparams.dataset_name,
+                block_size=block_size,
+                mode="train",
+            )
+            self.val_dataset = WikipediaTextDatasetParagraphsSentences(
+                tokenizer=self.tokenizer,
+                hparams=self.hparams,
+                dataset_name=self.hparams.dataset_name,
+                block_size=block_size,
+                mode="val",
+            )
+            self.val_dataset.indices_map = self.val_dataset.indices_map[: self.hparams.limit_val_indices_batches]
+            self.val_dataset.labels = self.val_dataset.labels[: self.hparams.limit_val_indices_batches]
+
+            self.test_dataset = WikipediaTextDatasetParagraphsSentencesTest(
+                tokenizer=self.tokenizer,
+                hparams=self.hparams,
+                dataset_name=self.hparams.dataset_name,
+                block_size=block_size,
+                mode="test",
+            )
 

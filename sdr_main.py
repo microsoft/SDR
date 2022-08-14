@@ -10,6 +10,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from utils.argparse_init import default_arg_parser, init_parse_argparse_default_params
 import logging
+import sys
 
 logging.basicConfig(level=logging.INFO)
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -32,10 +33,24 @@ def main_train(model_class_pointer, hparams,parser):
     """Initialize the model, call training loop."""
     pytorch_lightning.utilities.seed.seed_everything(seed=hparams.seed)
 
+    
+    #Need to follow if that part is required.
+    hparams.resume_from_checkpoint = '/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/epoch=3.ckpt'
     if(hparams.resume_from_checkpoint not in [None,'']):
-        hparams = load_params_from_checkpoint(hparams, parser)
+        hparams2 = load_params_from_checkpoint(hparams, parser)
+    hparams2.dataset_name = hparams.dataset_name
+    hparams2.resume_from_checkpoint = hparams.resume_from_checkpoint
+    hparams2.default_root_dir =  hparams.default_root_dir
+    hparams2.arch = hparams.arch
+    
+    #Need to see if we can put it back on
+    #if(hparams.resume_from_checkpoint not in [None,'']):
+    #    hparams = load_params_from_checkpoint(hparams, parser)
 
-    model = model_class_pointer(hparams)
+    
+    
+    
+    model = model_class_pointer(hparams2)
 
 
     logger = TensorBoardLogger(save_dir=model.hparams.hparams_dir,name='',default_hp_metric=False)
@@ -70,12 +85,24 @@ def main_train(model_class_pointer, hparams,parser):
     )
     if(not hparams.test_only):
         trainer.fit(model)
-    else:
-        if(hparams.resume_from_checkpoint is not None):
-            model = model.load_from_checkpoint(hparams.resume_from_checkpoint,hparams=hparams, map_location=torch.device(f"cpu"))
+    #Should put it back on
+    #else:
+    #    if(hparams.resume_from_checkpoint is not None):
+    #        model = model.load_from_checkpoint(hparams.resume_from_checkpoint,hparams=hparams, map_location=torch.device(f"cpu"))
     trainer.test(model)
 
 
 if __name__ == "__main__":
+    sys.argv.append("--dataset_name")
+    sys.argv.append("video_games")
+    sys.argv.append("--test_only")
+    sys.argv.append("True")
+    sys.argv.append("--gt_root_dir")
+    sys.argv.append("/mnt/nfs/datasets/ter_search/datasets/video_games_gameplay/gt_articles.dict")
+    #sys.argv.append("/home/jonathanE/Desktop/Github/SDR/SDR/data/datasets/video_games/video_games_gt.dict'")
+    sys.argv.append("--gt_task")
+    sys.argv.append("catalog")
+    sys.argv.append("--summaryFlag")
+    sys.argv.append("False")
     main()
 

@@ -119,6 +119,28 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
     parser.add_argument("--accumulate_grad_batches", default=1, type=int)
 
     ### Auxiliary parameters
+
+    parser.add_argument(
+        "--gt_root_dir", default=os.path.join(os.getcwd(), ""), help="The path to store this run output",
+    )
+    parser.add_argument(
+        "--gt_task", default='catalog', help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--summaryFlag", default=False, help="The path to store this run output",
+    )
+    parser.add_argument(
+        "--multiAnchor", default=True, help="The path to store this run output",
+    )
+    architecture = arch or parser.parse_known_args()[0].arch
+
+    parser.add_argument(
+        "--skipForwardPass", default=False, help="The path to store this run output",
+    )
+    parser.add_argument("--search_task", type=str2bool, nargs="?", const=False, default=False)
+    parser.add_argument("--all_document", type=str2bool, nargs="?", const=False, default=False)
+    
     parser.add_argument("--gpus", default=1, type=str, help="gpu count")
     parser.add_argument("--num_data_workers", default=0, type=int, help="for parallel data load")
     parser.add_argument("--overwrite_data_cache", type=str2bool, nargs="?", const=True, default=False)

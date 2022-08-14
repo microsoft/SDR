@@ -42,6 +42,8 @@ def calculate_mpr(
     for reco_idx in tqdm(input_recommandations):
         wiki_title = titles[reco_idx]
         curr_gts, text = [], []
+        badGT = 0
+
         recommandations = input_recommandations[reco_idx][1]
         if wiki_title not in article_article_gt:
             continue
@@ -49,12 +51,20 @@ def calculate_mpr(
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
             if lookup not in names_to_id:
                 print(f"{lookup} not in names_to_id")
+                if len(lookup.split(':'))>1 and lookup.split(':')[0]+'_'+lookup.split(':')[1]  in names_to_id and False:
+                    lookup = lookup.split(':')[0]+'_'+lookup.split(':')[1]
+                elif len(lookup.split(':'))>1 and lookup.replace(':','')  in names_to_id: 
+                    lookup = lookup.replace(':','')
+                else:
+                    badGT+=1
+                    continue
+            try:
+                recommended_idx_ls = [recommandations.index(names_to_id[lookup])]
+            except:
+                badGT+=1
                 continue
-            recommended_idx_ls = np.where(recommandations == names_to_id[lookup])[0]
-            if recommended_idx_ls.shape[0] == 0:
-                continue
+
             curr_gts.append(recommended_idx_ls[0])
-            percentiles.extend((recommended_idx_ls[0] / len(recommandations),) * article_article_gt[wiki_title][gt_title])
             text.append("gt: {}    gt place: {}".format(gt_title, recommended_idx_ls[0]))
 
         if len(curr_gts) > 0:
@@ -63,10 +73,14 @@ def calculate_mpr(
                 + "\n".join(text)
                 + "\ntopk: {}\n\n\n".format([titles[reco_i] for reco_i in recommandations[:10]])
             )
+            per_query_mpr += 1 - recommended_idx_ls[0]/ len(recommandations)
+        per_query_mpr /= (len(article_article_gt[wiki_title])-badGT+0.00001)
+        percentiles[wiki_title] = per_query_mpr
+    
+    globalMpr = np.mean(list(filter(lambda p:p>0,percentiles.values())))
 
-    percentiles = percentiles if percentiles != [] else [0]
-    print("percentiles_mean:{}\n\n\n\n".format(sum(percentiles) / len(percentiles)))
-    return percentiles, sum(percentiles) / len(percentiles)
+
+    return percentiles, globalMpr
 
 
 def calculate_mrr(
@@ -77,40 +91,44 @@ def calculate_mrr(
         article_article_gt - dict of dicts, each element is a sample, and all the gt samples goes with it and the count each sample
         sample_size - the amount of candidates to calculate the MPR on
     """
-    recepricals = []
+    reciprocals = {}
     for reco_idx in tqdm(input_recommandations):
         wiki_title = titles[reco_idx]
         text = []
         recommandations = input_recommandations[reco_idx][1]
         top = len(input_recommandations)
+        per_query_best_mrr = 0
+        badGT = 0
+
+
         for gt_title in article_article_gt[wiki_title].keys():
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
             if lookup not in names_to_id:
                 print(f"{lookup} not in names_to_id")
+                if len(lookup.split(':'))>1 and lookup.split(':')[0]+'_'+lookup.split(':')[1]  in names_to_id and False:
+                    lookup = lookup.split(':')[0]+'_'+lookup.split(':')[1]
+                elif len(lookup.split(':'))>1 and lookup.replace(':','')  in names_to_id: 
+                    lookup = lookup.replace(':','')
+                else:
+                    badGT+=1
+                    continue   
+
+            try:
+                recommended_idx_ls = [recommandations.index(names_to_id[lookup])]
+            except:
+                badGT+=1
                 continue
-            recommended_idx_ls = np.where(recommandations == names_to_id[lookup])[0]
-            if recommended_idx_ls.shape[0] > 0 and recommended_idx_ls[0] < top:
-                top = recommended_idx_ls[0]
-            if recommended_idx_ls.shape[0] == 0:
-                continue
+            per_query_best_mrr = max(per_query_best_mrr, 1 / (1+recommended_idx_ls[0]))
+
             text.append("gt: {}    gt place: {} ".format(gt_title, recommended_idx_ls[0]))
 
-        if top == 0:
-            top = 1
+        reciprocals[wiki_title] = per_query_best_mrr
+        global_mrr += per_query_best_mrr
 
-        if len(text) > 0:
-            recepricals.append(1 / (top))
-            text.append(f"\n receprical: {recepricals[-1]}")
-            print(
-                "title: {}\n".format(wiki_title)
-                + "\n".join(text)
-                + "\ntopk: {}\n\n\n".format([titles[reco_i] for reco_i in recommandations[:10]])
-            )
 
-    recepricals = recepricals if recepricals != [] else [0]
-    print(f"Recepricle mean:{sum(recepricals) / len(recepricals)}")
-    print(f"Recepricals \n {recepricals}")
-    return recepricals, sum(recepricals) / len(recepricals)
+    global_mrr/= len(input_recommandations)
+
+    return reciprocals, global_mrr
 
 
 def calculate_mean_hit_rate(
@@ -134,8 +152,18 @@ def calculate_mean_hit_rate(
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
             if lookup not in names_to_id:
                 print(f"{lookup} not in names_to_id")
+                if len(lookup.split(':'))>1 and lookup.split(':')[0]+'_'+lookup.split(':')[1]  in names_to_id and False:
+                    lookup = lookup.split(':')[0]+'_'+lookup.split(':')[1]
+                elif len(lookup.split(':'))>1 and lookup.replace(':','')  in names_to_id: 
+                    lookup = lookup.replace(':','')
+                else:
+                    continue
+            try:
+                recommended_idx_ls = [recommandations.index(names_to_id[lookup])]
+            except:
+                badGT+=1
+
                 continue
-            recommended_idx_ls = np.where(recommandations == names_to_id[lookup])[0]
             for thr_idx, thresuld in enumerate(rate_thresulds):
                 if recommended_idx_ls.shape[0] != 0 and recommended_idx_ls[0] < thresuld:
                     hit_by_rate[thr_idx] += 1
