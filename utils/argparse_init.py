@@ -69,7 +69,7 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
     task_name = parser.parse_known_args()[0].task_name
 
     DATASET_OPTIONS = {
-        "document_similarity": ["video_games", "wines",],
+        "document_similarity": ["video_games", "wines","video_games_cluster_multianchor",],
     }
     parser.add_argument(
         "--dataset_name",
@@ -114,6 +114,7 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
         "--arch", "--architecture", default={"document_similarity": "SDR"}[task_name], help="Architecture",
     )
 
+
     architecture = arch or parser.parse_known_args()[0].arch
 
     parser.add_argument("--accumulate_grad_batches", default=1, type=int)
@@ -123,16 +124,55 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
     parser.add_argument(
         "--gt_root_dir", default=os.path.join(os.getcwd(), ""), help="The path to store this run output",
     )
+
+
+    parser.add_argument(
+        "--loadEmbeddingPath", default=None, help="The path to store this run output",
+    )
+    
+
+
     parser.add_argument(
         "--gt_task", default='catalog', help="The path to store this run output",
     )
 
     parser.add_argument(
-        "--summaryFlag", default=False, help="The path to store this run output",
+        "--parseSummaryFilesToSingleFile", default=False, help="The path to store this run output",
     )
     parser.add_argument(
         "--multiAnchor", default=True, help="The path to store this run output",
     )
+    parser.add_argument(
+        "--extractMultipleSummaryFromFile", default=True, help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--extractEmbeddingFileDescription", default="", help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--averageEmbedding", default=False, help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--topicFilter", default=None, help="The path to store this run output",
+    )
+    parser.add_argument(
+        "--numberOfSentences", default=None, help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--filterSummaryByIndex", default=None, help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--allTitles", default=True, help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--titleFilterByTopicName", default="Gameplay.", help="The path to store this run output",
+    )
+
     architecture = arch or parser.parse_known_args()[0].arch
 
     parser.add_argument(

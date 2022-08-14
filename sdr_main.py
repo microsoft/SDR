@@ -94,7 +94,7 @@ def main_train(model_class_pointer, hparams,parser):
 
 if __name__ == "__main__":
     sys.argv.append("--dataset_name")
-    sys.argv.append("video_games")
+    sys.argv.append("video_games_cluster_multianchor")
     sys.argv.append("--test_only")
     sys.argv.append("True")
     sys.argv.append("--gt_root_dir")
@@ -102,7 +102,16 @@ if __name__ == "__main__":
     #sys.argv.append("/home/jonathanE/Desktop/Github/SDR/SDR/data/datasets/video_games/video_games_gt.dict'")
     sys.argv.append("--gt_task")
     sys.argv.append("catalog")
-    sys.argv.append("--summaryFlag")
-    sys.argv.append("False")
+    sys.argv.append("--parseSummaryFilesToSingleFile")
+    sys.argv.append("True")
+    sys.argv.append("--extractMultipleSummaryFromFile")
+    sys.argv.append("True")
+    sys.argv.append("--loadEmbeddingPath")
+    sys.argv.append("/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/epoch=3.ckpt_FEATURES_NumSamples_21228EntireDoc1807")
+    sys.argv.append("--extractEmbeddingFileDescription")
+    sys.argv.append("SummaryAllTopics")
+
+
+
     main()
 

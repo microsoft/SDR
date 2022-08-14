@@ -10,19 +10,30 @@ import pickle
 from sklearn.preprocessing import normalize
 
 
-def vectorize_reco_hierarchical(all_features, titles,gt_path, output_path=""):
+def vectorize_reco_hierarchical(all_features, titles,gt_path,config, output_path=""):
     gt = pickle.load(open(gt_path, "rb"))
     
-    cached_features_file = 'data/datasets/cached_proccessed/video_games2/bs_512_video_games_WikipediaTextDatasetParagraphsSentencesTest_tokenizer_RobertaTokenizer_mode_test'
-    with open(cached_features_file, "rb") as handle:
-        examplesName, indices_map = pickle.load(handle)
+    if not config.allTitles:
+        cached_features_file = 'data/datasets/cached_proccessed/video_games2/bs_512_video_games_WikipediaTextDatasetParagraphsSentencesTest_tokenizer_RobertaTokenizer_mode_test'
+        with open(cached_features_file, "rb") as handle:
+            examplesName, indices_map = pickle.load(handle)
+        titleSet = hasGamePlaySection(examplesName,config.titleFilterByTopicName)
+    else:
+        titleSet = set(titles)
 
-    titleSet = hasGamePlaySection(examplesName,'Gameplay.')
-    all_features2 = [all_features[ind] for ind in np.arange(len(all_features)) if titles[ind] in titleSet]
+    
+    if not config.filterSummaryByIndex==None and config.allTitles:
+        all_features = [[feat[config.filterSummaryByIndex]] if len(feat)>config.filterSummaryByIndex else [] for feat in all_features]
+        all_features2 = [all_features[ind] for ind in np.arange(len(all_features)) if titles[ind] in titleSet]
 
-    for sentenceInd in np.arange(1):
-        
-        all_features = limitFeaturesSize(all_features2,10-sentenceInd)
+    if config.numberOfSentences==None:
+        flagLimit = False
+
+    for sentenceInd in np.arange(config.numberOfSentences):
+        if flagLimit:
+            all_features = limitFeaturesSize(all_features2,10-sentenceInd)
+        else:
+            all_features = all_features2
         #all_features = all_features2
         to_reco_indices = [index_amp(titles, title) for title in gt.keys()]
         to_reco_indices = list(filter(lambda title: title != None, to_reco_indices))
@@ -76,7 +87,7 @@ def vectorize_reco_hierarchical(all_features, titles,gt_path, output_path=""):
         metrics = {"mrr": mrr, "mpr": mpr, "hit_rates": hit_rate}
     return recos, metrics
 
-def vectorize_reco_average_search(all_features, titles,gt_path, output_path=""):
+def vectorize_reco_average_search(all_features, titles,gt_path,config, output_path=""):
     gt = pickle.load(open(gt_path, "rb"))
     to_reco_indices = [index_amp(titles, title) for title in gt.keys()]
     to_reco_indices = list(filter(lambda title: title != None, to_reco_indices))
@@ -116,3 +127,20 @@ def limitFeaturesSize(all_features,index= 10):
     for it in np.arange(len(all_featuresOther)):
         all_featuresOther[it][0] = all_features[it][0][:index]
     return all_featuresOther
+
+def extractGamePlayFeatures(sectionString,all_features):
+    featureVec = []
+    for ind in np.arange(len(all_features)):
+        L1 = len(all_features[ind])
+        L2 = len(sectionString[ind][0])
+        index = 0
+        indCnt = 0
+        for section in sectionString[ind][0]:
+            if section[1].split(':')[-1]=='Gameplay.':
+                index = indCnt
+            indCnt+=1
+        if L1==L2 or indCnt<L1:
+            featureVec.append([all_features[ind][index]])
+        else:
+            featureVec.append([all_features[ind][-1]])
+    return featureVec

@@ -111,13 +111,13 @@ class SDR(TransformersBase):
         elif(self.hparams.resume_from_checkpoint is not None):
             self.trainer.checkpoint_callback.last_model_path = self.hparams.resume_from_checkpoint
         
-        recos_path =  '/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/epoch=3.ckpt_FEATURES_NumSamples_21228EntireDoc1807'
+        recos_path =  self.hparams.loadEmbeddingPath
 
         
         if recos_path is None:
             save_outputs_path = f"{self.trainer.checkpoint_callback.last_model_path}_FEATURES_NumSamples_{len(outputs)}"
 
-            save_outputs_path+="SummaryAllTopics"
+            save_outputs_path+=self.hparams.extractRecoDescription
 
             if isinstance(outputs[0][0][0], torch.Tensor):
                 outputs = [([to_numpy(section) for section in sample[0]], sample[1]) for sample in outputs]
@@ -145,11 +145,12 @@ class SDR(TransformersBase):
         )
         idxs = idxs[: self.hparams.test_sample_size]
         
-        if False:
+        if not self.hparams.averageEmbedding:
             recos, metrics = vectorize_reco_hierarchical(
                 all_features=section_sentences_features,
                 titles=titles,
                 gt_path=gt_path,
+                config = self.hparams,
                 output_path=self.trainer.checkpoint_callback.last_model_path,
             )
         else:
@@ -157,6 +158,7 @@ class SDR(TransformersBase):
                     all_features=section_sentences_features,
                     titles=titles,
                     gt_path=gt_path,
+                    config = self.hparams,
                     output_path=self.trainer.checkpoint_callback.last_model_path,
             )
         metrics = {
