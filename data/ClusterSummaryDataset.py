@@ -24,6 +24,8 @@ class ClusterSummaryDatasetSentences(Dataset):
             f"data/datasets/cached_proccessed/{dataset_name}",
             f"bs_{block_size}_{dataset_name}_{type(self).__name__}_tokenizer_{str(type(tokenizer)).split('.')[-1][:-2]}_mode_{mode}",
         )
+        cached_features_file+=self.hparams.cachedDescription
+
         self.cached_features_file = cached_features_file
         os.makedirs(os.path.dirname(cached_features_file), exist_ok=True)
 
@@ -110,21 +112,19 @@ class ClusterSummaryDatasetSentences(Dataset):
         self.labels = [idx_article for idx_article, _, _ in self.indices_map]
     
     def save_load_splitted_dataset(self, mode, cached_features_file, raw_data_path):
-        proccessed_path = f"{cached_features_file}_EXAMPLES"
         #debug - only when new dataset is added and need to parse it
-        
-        if self.hparams.parseSummaryFilesToSingleFile and self.hparams.dataset_name =='video_games_cluster_multianchor':
+        proccessed_path = f"{cached_features_file}_EXAMPLES"
+
+        if not not os.path.exists(proccessed_path) and self.hparams.parseSummaryFilesToSingleFile and self.hparams.dataset_name =='video_games_cluster_multianchor':
             sectionLidts = set(['Gameplay\n','Plot\n','Reception\n','Release\n'])
-            cached_features_file+='multiAnchor'
-            proccessed_path = f"{cached_features_file}_EXAMPLES"
             rootFolder = '/'.join(raw_data_path.split('/')[:-1])
             
             if not os.path.exists(rootFolder):
                 os.makedirs(rootFolder)
             file2 = open(raw_data_path, "w",encoding='utf8')
 
-            
-            openFile = '/raid/itzik/text_rank_output/latest_multi_anchor_stable_sent_to_jonathan/cohrent_order/'
+            openFile = self.hparams.rawData2Parse            
+            #openFile = '/raid/itzik/text_rank_output/latest_multi_anchor_stable_sent_to_jonathan/cohrent_order/'
             lISToFfILES = os.listdir(openFile)
             for it in lISToFfILES:
                 fileRoot = openFile+"/"+it

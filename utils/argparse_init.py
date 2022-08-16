@@ -173,6 +173,14 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
         "--titleFilterByTopicName", default="Gameplay.", help="The path to store this run output",
     )
 
+    parser.add_argument(
+        "--rawData2Parse", default="", help="The path to store this run output",
+    )
+
+    parser.add_argument(
+        "--cachedDescription", default="multiAnchorSoft", help="The path to store this run output",
+    )
+
     architecture = arch or parser.parse_known_args()[0].arch
 
     parser.add_argument(
