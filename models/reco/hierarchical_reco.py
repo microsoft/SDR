@@ -14,19 +14,21 @@ def vectorize_reco_hierarchical(all_features, titles,gt_path,config, output_path
     gt = pickle.load(open(gt_path, "rb"))
     
     if not config.allTitles:
-        cached_features_file = 'data/datasets/cached_proccessed/video_games2/bs_512_video_games_WikipediaTextDatasetParagraphsSentencesTest_tokenizer_RobertaTokenizer_mode_test'
+        cached_features_file = '/home/jonathanE/Desktop/Github/SDR/data/datasets/cached_proccessed/video_games2/bs_512_video_games_WikipediaTextDatasetParagraphsSentencesTest_tokenizer_RobertaTokenizer_mode_test'
         with open(cached_features_file, "rb") as handle:
             examplesName, indices_map = pickle.load(handle)
         titleSet = hasGamePlaySection(examplesName,config.titleFilterByTopicName)
+
     else:
         titleSet = set(titles)
 
-    
+
     if not config.filterSummaryByIndex==None and config.allTitles:
         all_features = [[feat[config.filterSummaryByIndex]] if len(feat)>config.filterSummaryByIndex else [] for feat in all_features]
-        all_features2 = [all_features[ind] for ind in np.arange(len(all_features)) if titles[ind] in titleSet]
+    all_features2 = [all_features[ind] for ind in np.arange(len(all_features)) if titles[ind] in titleSet]
 
     if config.numberOfSentences==None:
+        config.numberOfSentences = 1
         flagLimit = False
 
     for sentenceInd in np.arange(config.numberOfSentences):

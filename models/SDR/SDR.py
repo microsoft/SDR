@@ -110,8 +110,8 @@ class SDR(TransformersBase):
             self.trainer.checkpoint_callback.last_model_path = f"{self.hparams.hparams_dir}/no_train"
         elif(self.hparams.resume_from_checkpoint is not None):
             self.trainer.checkpoint_callback.last_model_path = self.hparams.resume_from_checkpoint
-        
-        recos_path =  self.hparams.loadEmbeddingPath
+        if self.hparams.skipForwardPass:
+            recos_path =  self.hparams.loadEmbeddingPath
 
         
         if recos_path is None:
@@ -126,24 +126,27 @@ class SDR(TransformersBase):
             save_outputs_path = recos_path
 
         outputs = torch.load(save_outputs_path)
-        if recos_path=='/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/01_06_2022-14_57_08/epoch=3.ckpt_FEATURES_NumSamples_21226SummaryAllTopics':
+        #Need To Validate it
+        if  self.hparams.dataset_name  in "video_games_cluster_multianchor":
             index = -9
         else:
             index = -1
+
+
         print(f"\nSaved to {save_outputs_path}\n")
 
-        titles = popular_titles = [out[1][:-index] for out in outputs]
+        titles = popular_titles = [out[1][:index] for out in outputs]
 
         idxs, gt_path = list(range(len(titles))), ""
 
         section_sentences_features = [out[0] for out in outputs]
-        popular_titles, idxs, gt_path = get_gt_seeds_titles(titles, self.hparams.dataset_name)
+        #popular_titles, idxs, gt_path = get_gt_seeds_titles(titles, self.hparams.dataset_name)
         gt_path = self.hparams.gt_root_dir
 
         self.hparams.test_sample_size = (
             self.hparams.test_sample_size if self.hparams.test_sample_size > 0 else len(popular_titles)
         )
-        idxs = idxs[: self.hparams.test_sample_size]
+        #idxs = idxs[: self.hparams.test_sample_size]
         
         if not self.hparams.averageEmbedding:
             recos, metrics = vectorize_reco_hierarchical(

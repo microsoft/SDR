@@ -166,7 +166,7 @@ def init_parse_argparse_default_params(parser, dataset_name=None, arch=None):
     )
 
     parser.add_argument(
-        "--allTitles", default=True, help="The path to store this run output",
+        "--allTitles", default=False, help="The path to store this run output",
     )
 
     parser.add_argument(
