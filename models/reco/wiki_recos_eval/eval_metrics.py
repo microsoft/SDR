@@ -10,10 +10,10 @@ import json
 def evaluate_wiki_recos(recos, output_path, gt_path, examples):
     original_stdout = sys.stdout
     sys.stdout = Unbuffered(open(f"{output_path}_reco_scores", "w"))
-    dataset_as_dict = {sample[1]: sample for sample in examples}
+    dataset_as_dict = {sample[1]: sample for sample in examples if len(sample[1])>0}
     recos_as_dict = {reco[0]: reco for reco in recos}
-    names_to_id = {sample[1]: idx for idx, sample in enumerate(examples)}
-    titles = [ex[1] for ex in examples]
+    names_to_id = {sample[1]: idx for idx, sample in enumerate(examples) if len(sample[1])>0}
+    titles = [ex[1] for ex in examples if len(ex[1])>0]
 
     article_recos_per_article = pickle.load(open(gt_path, "rb"))
 
@@ -38,16 +38,16 @@ def evaluate_wiki_recos(recos, output_path, gt_path, examples):
 def calculate_mpr(
     input_recommandations, article_article_gt, dataset, names_to_id, sample_size=-1, popular_titles=None, titles=[]
 ):
-    percentiles = []
+    percentiles = {}
     for reco_idx in tqdm(input_recommandations):
         wiki_title = titles[reco_idx]
         curr_gts, text = [], []
         badGT = 0
-
-        recommandations = input_recommandations[reco_idx][1]
+        per_query_mpr = 0
+        recommandations = [it for it in input_recommandations[reco_idx][1]]
         if wiki_title not in article_article_gt:
             continue
-        for gt_title in article_article_gt[wiki_title].keys():
+        for gt_title in article_article_gt[wiki_title]:
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
             if lookup not in names_to_id:
                 print(f"{lookup} not in names_to_id")
@@ -67,12 +67,12 @@ def calculate_mpr(
             curr_gts.append(recommended_idx_ls[0])
             text.append("gt: {}    gt place: {}".format(gt_title, recommended_idx_ls[0]))
 
-        if len(curr_gts) > 0:
-            print(
-                "title: {}\n".format(wiki_title)
-                + "\n".join(text)
-                + "\ntopk: {}\n\n\n".format([titles[reco_i] for reco_i in recommandations[:10]])
-            )
+            if len(curr_gts) > 0:
+                print(
+                    "title: {}\n".format(wiki_title)
+                    + "\n".join(text)
+                    + "\ntopk: {}\n\n\n".format([titles[reco_i] for reco_i in recommandations[:10]])
+                )
             per_query_mpr += 1 - recommended_idx_ls[0]/ len(recommandations)
         per_query_mpr /= (len(article_article_gt[wiki_title])-badGT+0.00001)
         percentiles[wiki_title] = per_query_mpr
@@ -92,20 +92,21 @@ def calculate_mrr(
         sample_size - the amount of candidates to calculate the MPR on
     """
     reciprocals = {}
+    global_mrr = 0
     for reco_idx in tqdm(input_recommandations):
         wiki_title = titles[reco_idx]
         text = []
-        recommandations = input_recommandations[reco_idx][1]
+        recommandations = [it for it in input_recommandations[reco_idx][1]]
         top = len(input_recommandations)
         per_query_best_mrr = 0
         badGT = 0
 
 
-        for gt_title in article_article_gt[wiki_title].keys():
+        for gt_title in article_article_gt[wiki_title]:
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
             if lookup not in names_to_id:
                 print(f"{lookup} not in names_to_id")
-                if len(lookup.split(':'))>1 and lookup.split(':')[0]+'_'+lookup.split(':')[1]  in names_to_id and False:
+                if len(lookup.split(':'))>1 and lookup.split(':')[0]+'_'+lookup.split(':')[1]  in names_to_id:
                     lookup = lookup.split(':')[0]+'_'+lookup.split(':')[1]
                 elif len(lookup.split(':'))>1 and lookup.replace(':','')  in names_to_id: 
                     lookup = lookup.replace(':','')
@@ -146,9 +147,8 @@ def calculate_mean_hit_rate(
         wiki_title = titles[reco_idx]
         curr_gts, text = [], []
         hit_by_rate = [0 for i in rate_thresulds]
-        recommandations = input_recommandations[reco_idx][1]
-        for gt_title in article_article_gt[wiki_title].keys():
-
+        recommandations = [it for it in input_recommandations[reco_idx][1]]
+        for gt_title in article_article_gt[wiki_title]:
             lookup = gt_title.replace("&", "&amp;") if "amp;" not in gt_title and gt_title not in names_to_id else gt_title
             if lookup not in names_to_id:
                 print(f"{lookup} not in names_to_id")
@@ -165,7 +165,7 @@ def calculate_mean_hit_rate(
 
                 continue
             for thr_idx, thresuld in enumerate(rate_thresulds):
-                if recommended_idx_ls.shape[0] != 0 and recommended_idx_ls[0] < thresuld:
+                if recommended_idx_ls[0] < thresuld:
                     hit_by_rate[thr_idx] += 1
             text.append(f"gt: {gt_title}    gt place: {recommended_idx_ls}")
 
@@ -174,7 +174,7 @@ def calculate_mean_hit_rate(
                 print(
                     f"title: {wiki_title} Hit rate at {thresuld}: {hit_by_rate[thr_idx]} \n \n {''.join(text)} \n topk: {[titles[reco_i] for reco_i in recommandations[:10]]}\n\n\n"
                 )
-                hit_mean = hit_by_rate[thr_idx] / len(article_article_gt[wiki_title].keys()) if hit_by_rate[thr_idx] > 0 else 0
+                hit_mean = hit_by_rate[thr_idx] / len(article_article_gt[wiki_title]) if hit_by_rate[thr_idx] > 0 else 0
                 mean_hits[thr_idx].append(hit_mean)
 
     mean_hits = mean_hits if mean_hits != [[] for rate_thresuld in rate_thresulds] else [[0] for rate_thresuld in rate_thresulds]

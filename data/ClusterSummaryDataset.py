@@ -114,8 +114,8 @@ class ClusterSummaryDatasetSentences(Dataset):
     def save_load_splitted_dataset(self, mode, cached_features_file, raw_data_path):
         #debug - only when new dataset is added and need to parse it
         proccessed_path = f"{cached_features_file}_EXAMPLES"
-
-        if not not os.path.exists(proccessed_path) and self.hparams.parseSummaryFilesToSingleFile and self.hparams.dataset_name =='video_games_cluster_multianchor':
+        #not os.path.exists(proccessed_path) and
+        if  not os.path.exists(proccessed_path) and self.hparams.parseSummaryFilesToSingleFile and self.hparams.dataset_name =='video_games_cluster_multianchor':
             sectionLidts = set(['Gameplay\n','Plot\n','Reception\n','Release\n'])
             rootFolder = '/'.join(raw_data_path.split('/')[:-1])
             

@@ -36,6 +36,7 @@ def main_train(model_class_pointer, hparams,parser):
     
     #Need to follow if that part is required.
     hparams.resume_from_checkpoint = '/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/epoch=3.ckpt'
+    
     if(hparams.resume_from_checkpoint not in [None,'']):
         hparams2 = load_params_from_checkpoint(hparams, parser)
     hparams2.dataset_name = hparams.dataset_name
@@ -104,17 +105,19 @@ if __name__ == "__main__":
     sys.argv.append("catalog")
     sys.argv.append("--parseSummaryFilesToSingleFile")
     sys.argv.append("False")
+    sys.argv.append("--rawData2Parse")
+    sys.argv.append("/mnt/nfs/JonathanE/Extracted/latest_multi_anchor/cohrent_order/")
+    sys.argv.append("--cachedDescription")
+    sys.argv.append("multiAnchorSoft")
     sys.argv.append("--extractMultipleSummaryFromFile")
     sys.argv.append("True")
     sys.argv.append("--loadEmbeddingPath")
     sys.argv.append("/home/jonathanE/Desktop/Github/SDR/output/document_similarity/arch_SDR/dataset_name_video_games/test_only_False/01_06_2022-14_57_08/epoch=3.ckpt_FEATURES_NumSamples_21226SummaryAllTopics")
     sys.argv.append("--extractEmbeddingFileDescription")
     sys.argv.append("SummaryAllTopics")
-    sys.argv.append("--rawData2Parse")
-    sys.argv.append("/mnt/nfs/JonathanE/Extracted/latest_multi_anchor/cohrent_order/")
-    sys.argv.append("--cachedDescription")
-    sys.argv.append("multiAnchorSoft")
     sys.argv.append("--skipForwardPass")
+    sys.argv.append("True")
+    sys.argv.append("--allTitles")
     sys.argv.append("True")
     
 

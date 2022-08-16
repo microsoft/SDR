@@ -20,12 +20,13 @@ def vectorize_reco_hierarchical(all_features, titles,gt_path,config, output_path
         titleSet = hasGamePlaySection(examplesName,config.titleFilterByTopicName)
 
     else:
-        titleSet = set(titles)
+        titleSet = set([it for it in titles if len(it)>0 ])
 
 
     if not config.filterSummaryByIndex==None and config.allTitles:
         all_features = [[feat[config.filterSummaryByIndex]] if len(feat)>config.filterSummaryByIndex else [] for feat in all_features]
-    all_features2 = [all_features[ind] for ind in np.arange(len(all_features)) if titles[ind] in titleSet]
+    all_features2 = [all_features[ind] for ind in np.arange(len(all_features)) if len(all_features[ind])>0 and titles[ind] in titleSet]
+    titles = [it for it in titles if len(it)>0]
 
     if config.numberOfSentences==None:
         config.numberOfSentences = 1
@@ -33,10 +34,10 @@ def vectorize_reco_hierarchical(all_features, titles,gt_path,config, output_path
 
     for sentenceInd in np.arange(config.numberOfSentences):
         if flagLimit:
-            all_features = limitFeaturesSize(all_features2,10-sentenceInd)
+            all_features = limitFeaturesSize(all_features2,config.numberOfSentences-sentenceInd)
         else:
             all_features = all_features2
-        #all_features = all_features2
+
         to_reco_indices = [index_amp(titles, title) for title in gt.keys()]
         to_reco_indices = list(filter(lambda title: title != None, to_reco_indices))
         sections_per_article = np.array([len(article) for article in all_features])
