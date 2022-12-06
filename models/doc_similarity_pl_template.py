@@ -22,7 +22,7 @@ class DocEmbeddingTemplate(LightningModule):
         self, hparams,
     ):
         super(DocEmbeddingTemplate, self).__init__()
-        self.hparams = hparams
+        self.save_hyperparameters(hparams)
         self.hparams.hparams_dir = extract_model_path_for_hyperparams(self.hparams.default_root_dir, self)
         self.losses = {}
         self.tracks = {}
